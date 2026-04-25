@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>네덜란드 여행 큐레이션 — 암스테르담 & 인근</title>
+
+<!-- ════════════════════════════════════════════════════════════════════
+    🗺️ NAVER MAPS API 연결 위치
+    배포된 도메인을 Naver Cloud에 등록한 뒤, 아래 한 줄을 활성화하세요.
+    
+    <script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=YOUR_CLIENT_ID"></script>
+═══════════════════════════════════════════════════════════════════════════ -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=Inter+Tight:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4EEE0; --surface:#FBF8F1; --surface-2:#FFFFFF;
+    --ink:#1A1812; --ink-2:#5C5448; --ink-3:#9A9088;
+    --line:#E2D9C5; --line-2:#CFC4AA;
+    --c-sights:#1E4A82; --c-sights-deep:#0F2841;
+    --c-impact:#3F6A4D; --c-impact-deep:#1F3325;
+    --c-food:#C24A2C; --c-food-deep:#6E2918;
+    --shadow-sm:0 1px 0 rgba(26,24,18,.04);
+    --shadow:0 6px 30px -12px rgba(26,24,18,.18);
+    --font-display:'Gowun Batang','Fraunces',serif;
+    --font-body:'IBM Plex Sans KR','Gowun Dodum','Inter Tight',sans-serif;
+    --font-num:'Inter Tight','IBM Plex Sans KR',sans-serif;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:var(--font-body); font-weight:400; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 1px 1px, rgba(26,24,18,.06) 1px, transparent 0);
+    background-size:24px 24px; min-height:100vh;
+  }
+  a{color:inherit}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+  .container{max-width:1380px;margin:0 auto;padding:0 32px}
+
+  /* ───── Hero ───── */
+  .hero{padding:48px 32px 20px;max-width:1380px;margin:0 auto}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:36px;padding-bottom:18px;border-bottom:1px solid var(--line);font-family:var(--font-num);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+  .hero-top .brand{display:flex;align-items:center;gap:10px}
+  .hero-top .brand::before{content:"";width:28px;height:8px;background:var(--c-food);display:inline-block}
+  .hero-top .meta{text-align:right;line-height:1.7}
+  .hero h1{font-family:var(--font-display);font-weight:700;font-size:clamp(40px, 6vw, 76px);line-height:.95;letter-spacing:-.02em;margin-bottom:24px}
+  .hero h1 .accent{color:var(--c-food);font-style:italic;font-family:'Fraunces',var(--font-display)}
+  .hero-sub{display:grid;grid-template-columns:1.5fr 1fr;gap:48px;align-items:end}
+  .hero-desc{font-size:16px;color:var(--ink-2);max-width:640px;line-height:1.7}
+  .hero-stats{display:flex;gap:32px;justify-content:flex-end}
+  .stat{text-align:right}
+  .stat .num{font-family:var(--font-num);font-weight:700;font-size:42px;line-height:1;color:var(--ink);letter-spacing:-.02em}
+  .stat .label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-top:6px}
+
+  /* ───── Picks bar ───── */
+  .picks{background:var(--ink);color:#F4EEE0;margin:0 auto 24px;max-width:1380px;width:calc(100% - 64px);overflow:hidden;transition:max-height .4s ease, opacity .3s ease, margin .3s ease}
+  .picks.empty{max-height:0;opacity:0;margin-bottom:0}
+  .picks-header{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid rgba(244,238,224,.15)}
+  .picks-title{font-family:var(--font-display);font-size:20px;font-weight:700;display:flex;align-items:center;gap:12px}
+  .picks-count{background:var(--c-food);color:#fff;font-family:var(--font-num);font-weight:700;font-size:13px;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+  .picks-actions{display:flex;gap:8px}
+  .picks-btn{border:1px solid rgba(244,238,224,.25);color:#F4EEE0;padding:7px 12px;font-size:12px;letter-spacing:.04em;transition:all .2s}
+  .picks-btn:hover{background:rgba(244,238,224,.1);border-color:rgba(244,238,224,.5)}
+  .picks-list{padding:16px 24px;display:flex;flex-wrap:wrap;gap:8px}
+  .pick-chip{background:rgba(244,238,224,.08);border:1px solid rgba(244,238,224,.15);padding:7px 10px 7px 14px;display:inline-flex;align-items:center;gap:10px;font-size:13px;transition:all .2s;cursor:pointer}
+  .pick-chip:hover{background:rgba(244,238,224,.15)}
+  .pick-chip .dot{width:8px;height:8px;border-radius:50%}
+  .pick-chip .x{color:var(--ink-3);padding:2px 6px;font-size:14px;border-radius:50%;transition:all .2s}
+  .pick-chip .x:hover{color:#fff;background:rgba(244,238,224,.15)}
+
+  /* ───── Map section (centered, above filters) ───── */
+  .map-section{max-width:1380px;margin:0 auto 24px;padding:0 32px}
+  .map-pane{background:var(--surface);border:1px solid var(--line);height:480px;display:flex;flex-direction:column}
+  .map-header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;flex-wrap:wrap;gap:8px}
+  .map-title{font-family:var(--font-display);font-weight:700;font-size:16px;display:flex;align-items:center;gap:10px}
+  .map-title::before{content:"";width:6px;height:6px;background:var(--c-food);display:inline-block}
+  .map-info{font-family:var(--font-num);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:14px}
+  .map-info .num{font-weight:700;color:var(--ink)}
+  .map-legend{display:flex;gap:12px;font-size:11px;color:var(--ink-2)}
+  .map-legend-item{display:flex;align-items:center;gap:5px}
+  .map-legend-item .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .map-container{flex:1;position:relative;background:#EDE6D5;overflow:hidden}
+  #map{width:100%;height:100%}
+  
+  .map-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;background:linear-gradient(135deg, transparent 49.5%, rgba(26,24,18,.04) 49.5%, rgba(26,24,18,.04) 50.5%, transparent 50.5%),#EDE6D5;background-size:16px 16px}
+  .map-placeholder .ico{font-size:48px;opacity:.3;margin-bottom:12px}
+  .map-placeholder h4{font-family:var(--font-display);font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px}
+  .map-placeholder p{font-size:13px;color:var(--ink-2);max-width:380px;line-height:1.6}
+  .map-placeholder code{font-family:'IBM Plex Mono',monospace;font-size:11px;background:rgba(0,0,0,.06);padding:2px 6px;word-break:break-all;display:inline-block;margin-top:4px}
+  .map-placeholder .pin-list{margin-top:20px;display:flex;flex-wrap:wrap;gap:5px;justify-content:center;max-width:480px;max-height:80px;overflow:hidden}
+  .map-placeholder .pin-mini{width:9px;height:9px;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.6)}
+
+  @media (max-width:768px){
+    .map-pane{height:340px}
+  }
+
+  /* ───── Filters ───── */
+  .filters{max-width:1380px;margin:0 auto;padding:14px 32px 18px;position:sticky;top:0;background:linear-gradient(to bottom, var(--bg) 80%, transparent);z-index:50}
+  .filter-row{display:flex;flex-wrap:wrap;align-items:center;gap:18px;padding-bottom:12px}
+  .filter-row + .filter-row{border-top:1px solid var(--line);padding-top:12px}
+  .filter-label{font-family:var(--font-num);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);min-width:50px}
+  .filter-pills{display:flex;flex-wrap:wrap;gap:6px}
+  .pill{padding:7px 12px;border:1px solid var(--line);background:transparent;font-size:13px;font-weight:500;color:var(--ink-2);transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+  .pill:hover{border-color:var(--ink);color:var(--ink)}
+  .pill.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .pill .swatch{width:8px;height:8px;display:inline-block}
+  .pill .count{font-family:var(--font-num);font-size:11px;color:var(--ink-3);font-weight:600}
+  .pill.active .count{color:rgba(244,238,224,.6)}
+  .search-box{position:relative;margin-left:auto;width:260px}
+  .search-box input{width:100%;padding:8px 14px 8px 34px;border:1px solid var(--line);background:var(--surface);font-family:inherit;font-size:13px;color:var(--ink);transition:border-color .2s}
+  .search-box input:focus{outline:none;border-color:var(--ink)}
+  .search-box::before{content:"⌕";position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:16px}
+
+  /* ───── Result info + Grid ───── */
+  .content{max-width:1380px;margin:0 auto;padding:0 32px 60px}
+  .result-info{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--ink-2);margin-bottom:16px}
+  .result-info .num{font-family:var(--font-num);font-weight:700;color:var(--ink)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+
+  /* ───── Card ───── */
+  .card{background:var(--surface);padding:20px;position:relative;transition:background .25s, transform .25s;display:flex;flex-direction:column;gap:12px;cursor:pointer}
+  .card:hover{background:var(--surface-2)}
+  .card.picked{background:var(--surface-2)}
+  .card.picked::before{content:"";position:absolute;inset:0;border:2px solid var(--c-food);pointer-events:none;z-index:1}
+  .card.focused{background:#FFF}
+  .card.focused::after{content:"";position:absolute;inset:0;border:2px solid var(--ink);pointer-events:none;z-index:1}
+  .card.focused.picked::after{border-color:var(--c-food)}
+  
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .card-tag{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-family:var(--font-num);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+  .card-tag .dot{width:6px;height:6px;display:inline-block}
+  .card-tag.cat-sights{color:var(--c-sights)}
+  .card-tag.cat-sights .dot{background:var(--c-sights)}
+  .card-tag.cat-impact{color:var(--c-impact)}
+  .card-tag.cat-impact .dot{background:var(--c-impact)}
+  .card-tag.cat-food{color:var(--c-food)}
+  .card-tag.cat-food .dot{background:var(--c-food)}
+
+  .star-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);color:var(--ink-3);transition:all .2s;font-size:16px;line-height:1;flex-shrink:0;z-index:2;position:relative}
+  .star-btn:hover{border-color:var(--c-food);color:var(--c-food)}
+  .card.picked .star-btn{background:var(--c-food);color:#fff;border-color:var(--c-food)}
+
+  .card-name{font-family:var(--font-display);font-weight:700;font-size:19px;line-height:1.2;letter-spacing:-.01em;color:var(--ink);margin-top:2px}
+  .card-sub{font-size:11.5px;color:var(--ink-3);font-family:var(--font-num);letter-spacing:.04em;margin-top:-4px}
+  .card-note{font-size:12.5px;color:var(--ink-2);line-height:1.6;flex-grow:1}
+  
+  /* Card image */
+  .card-img{
+    position:relative;
+    aspect-ratio:16/9;
+    overflow:hidden;
+    border:1px solid var(--line);
+    background-color:var(--ink-3);
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    transition:opacity .3s;
+  }
+  .card[data-cat="sights"] .card-img{background-image:linear-gradient(135deg, var(--c-sights), var(--c-sights-deep))}
+  .card[data-cat="impact"] .card-img{background-image:linear-gradient(135deg, var(--c-impact), var(--c-impact-deep))}
+  .card[data-cat="food"] .card-img{background-image:linear-gradient(135deg, var(--c-food), var(--c-food-deep))}
+  
+  .card-img-placeholder{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:14px;text-align:center;
+    color:rgba(255,255,255,.92);
+    font-family:var(--font-display);
+    font-size:14px;font-weight:700;
+    line-height:1.3;
+    background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.08) 1px, transparent 0);
+    background-size:12px 12px;
+    transition:opacity .35s ease;
+  }
+  .card-img.has-image{
+    background-image:none !important;
+    background-color:#000;
+  }
+  .card-img.has-image .card-img-placeholder{opacity:0;pointer-events:none}
+  .card-img-loading{
+    position:absolute;top:8px;right:8px;
+    width:14px;height:14px;
+    border:2px solid rgba(255,255,255,.3);
+    border-top-color:rgba(255,255,255,.9);
+    border-radius:50%;
+    animation:spin .8s linear infinite;
+    opacity:0;transition:opacity .2s;
+  }
+  .card-img.loading .card-img-loading{opacity:1}
+  .card-img.has-image .card-img-loading{opacity:0}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .card-foot{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--line);gap:8px;flex-wrap:wrap}
+  .card-city{font-size:11.5px;color:var(--ink-3);letter-spacing:.04em}
+  .card-actions{display:flex;gap:10px;align-items:center}
+  .card-link{font-size:11.5px;font-weight:600;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--ink);padding-bottom:1px;transition:all .2s;z-index:2;position:relative;white-space:nowrap}
+  .card-link:hover{color:var(--c-food);border-color:var(--c-food)}
+  .card-link.img-link{color:var(--ink-2);border-color:var(--ink-2)}
+
+  .empty-state{grid-column:1/-1;background:var(--surface);padding:60px 24px;text-align:center;color:var(--ink-3)}
+  .empty-state h3{font-family:var(--font-display);font-weight:700;font-size:24px;color:var(--ink);margin-bottom:8px}
+
+  footer{max-width:1380px;margin:0 auto;padding:32px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);line-height:1.6;display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px}
+
+  @media (max-width:768px){
+    .hero{padding:32px 20px 16px}
+    .hero-sub{grid-template-columns:1fr;gap:24px}
+    .hero-stats{justify-content:flex-start}
+    .picks{width:calc(100% - 40px)}
+    .map-section{padding:0 20px}
+    .filters{padding-left:20px;padding-right:20px}
+    .filter-row{gap:10px}
+    .search-box{width:100%;margin-left:0;margin-top:6px}
+    .content{padding-left:20px;padding-right:20px;padding-bottom:40px}
+    .grid{grid-template-columns:1fr}
+    footer{padding:24px 20px;flex-direction:column}
+    .map-legend{display:none}
+  }
+  @media print{
+    body{background:white;background-image:none}
+    .filters,.star-btn,.picks-btn,.map-section{display:none}
+    .grid{grid-template-columns:repeat(2,1fr);border:none}
+    .card{break-inside:avoid;border:1px solid #ccc}
+  }
+
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .card{animation:fadeIn .3s ease backwards}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-top">
+    <div class="brand">CURATED · NL TRAVEL GUIDE</div>
+    <div class="meta">AMSTERDAM &amp; THE NETHERLANDS<br>EDITION 2026 · v4.0</div>
+  </div>
+  <h1>네덜란드<br>여행 <span class="accent">큐레이션</span></h1>
+  <div class="hero-sub">
+    <p class="hero-desc">
+      암스테르담과 1시간 이내 권역의 관광지·사회연대경제 기업·맛집을 한곳에 모았습니다.
+      지도에서 분포를 확인하고, 카드의 사진과 설명으로 분위기를 가늠한 뒤, ★를 눌러 나만의 여행지 리스트를 만들어보세요.
+    </p>
+    <div class="hero-stats">
+      <div class="stat"><div class="num" id="stat-total">—</div><div class="label">전체 장소</div></div>
+      <div class="stat"><div class="num">7</div><div class="label">도시 권역</div></div>
+      <div class="stat"><div class="num">3</div><div class="label">카테고리</div></div>
+    </div>
+  </div>
+</header>
+
+<section class="picks empty" id="picks">
+  <div class="picks-header">
+    <div class="picks-title">내가 고른 장소 <span class="picks-count" id="pickCount">0</span></div>
+    <div class="picks-actions">
+      <button class="picks-btn" onclick="copyPicks()">목록 복사</button>
+      <button class="picks-btn" onclick="clearPicks()">전체 해제</button>
+    </div>
+  </div>
+  <div class="picks-list" id="pickList"></div>
+</section>
+
+<!-- ════════════ MAP SECTION (centered, above filters) ════════════ -->
+<section class="map-section">
+  <div class="map-pane">
+    <div class="map-header">
+      <div class="map-title">지도 · MAP</div>
+      <div class="map-info">
+        <div class="map-legend">
+          <span class="map-legend-item"><span class="dot" style="background:var(--c-sights)"></span>관광지</span>
+          <span class="map-legend-item"><span class="dot" style="background:var(--c-impact)"></span>사회연대경제</span>
+          <span class="map-legend-item"><span class="dot" style="background:var(--c-food)"></span>맛집</span>
+        </div>
+        <span><span class="num" id="map-count">0</span> markers</span>
+      </div>
+    </div>
+    <div class="map-container">
+      <div id="map"></div>
+      <div class="map-placeholder" id="mapPlaceholder">
+        <div class="ico">🗺️</div>
+        <h4>Naver Maps API 연결 대기 중</h4>
+        <p>HTML 상단 주석의 <code>&lt;script&gt;</code> 태그를 활성화하고 발급받은 클라이언트 ID를 넣으면 지도가 자동 활성화됩니다. 아래 점들은 현재 필터 결과의 분포 미리보기입니다.</p>
+        <div class="pin-list" id="pinPreview"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<nav class="filters">
+  <div class="filter-row">
+    <span class="filter-label">분류</span>
+    <div class="filter-pills" id="catPills"></div>
+    <div class="search-box"><input type="text" id="search" placeholder="장소·메모 검색…"></div>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">도시</span>
+    <div class="filter-pills" id="cityPills"></div>
+  </div>
+</nav>
+
+<div class="content">
+  <div class="result-info">
+    <div><span class="num" id="result-count">0</span>곳 표시 중</div>
+    <div id="active-filter" style="color:var(--ink-3)"></div>
+  </div>
+  <main class="grid" id="grid"></main>
+</div>
+
+<footer>
+  <div>출처: I Amsterdam · Amsterdam Impact · ImpactCity Den Haag · Social Impact Factory · Visit Haarlem · 이미지: Wikipedia / Wikimedia Commons</div>
+  <div>이미지·정보는 방문 전 재확인 권장 · 좌표는 일부 근사값 포함</div>
+</footer>
+
+<script>
+const PLACES = [
+  // ─── 암스테르담 — 관광지 ───
+  {name:"반고흐 미술관", en:"Van Gogh Museum", category:"sights", city:"암스테르담", note:"현존하는 반 고흐 작품의 절반이 모인 성지. 〈해바라기〉 〈아몬드 꽃〉 〈자화상〉 같은 대표작 200점에 편지 700통까지. 시간 순으로 그의 정신 변화를 따라가는 동선이 백미. 사전예약 1~2주 전 필수.", maps:"https://maps.app.goo.gl/kXNjNnMTW72Q18Ja7", lat:52.3584, lng:4.8811},
+  {name:"국립미술관 (Rijksmuseum)", en:"Rijksmuseum", category:"sights", city:"암스테르담", note:"렘브란트 〈야간순찰〉, 베르메르 〈우유 따르는 여인〉 등 교과서급 명작 집결지. 단순 미술관이 아니라 800년 네덜란드 역사를 그림으로 풀어낸 거대한 서사. 4시간은 잡고 가세요.", maps:"https://maps.app.goo.gl/L9qHUB1VJKLy6bPH8", lat:52.3600, lng:4.8852},
+  {name:"안네 프랑크 하우스", en:"Anne Frank House", category:"sights", city:"암스테르담", note:"13살 소녀가 2년간 숨어 살았던 그 다락방을 직접 걷는 경험. 영화·책으로 본 것과는 차원이 다른 무게감. 한 달 전 시간지정 예매만 가능. 입장 1.5시간 + 감정 정리 시간 따로.", maps:"https://maps.app.goo.gl/q3VisbkA77yPyz5F8", lat:52.3752, lng:4.8840},
+  {name:"렘브란트 하우스 뮤지엄", en:"Rembrandt House Museum", category:"sights", city:"암스테르담", note:"대가가 직접 살고 그렸던 17세기 작업실 복원. 동판화 시연을 눈앞에서 보고, 그가 쓰던 안료와 도구까지 그대로 진열. Rijksmuseum의 그림에 깊이를 더해주는 작은 보석 같은 곳.", maps:"https://maps.app.goo.gl/r1ekuoGRdQcm5Qib8", lat:52.3692, lng:4.9015},
+  {name:"시립미술관 Stedelijk", en:"Stedelijk Museum Amsterdam", category:"sights", city:"암스테르담", note:"Rijks가 옛 거장이라면 여긴 모던. 몬드리안, 말레비치, 워홀까지. 'the bathtub' 별명의 건축물 자체가 볼거리. 1~2시간이면 충분해 가성비 좋은 보너스 코스.", maps:"https://www.google.com/maps/search/?api=1&query=Stedelijk+Museum+Amsterdam", lat:52.3579, lng:4.8800},
+  {name:"다락방 교회 박물관", en:"Our Lord in the Attic", category:"sights", city:"암스테르담", note:"운하 주택 다락방을 통째로 비밀 가톨릭 교회로 만든 17세기 박해 시대의 흔적. 좁은 계단과 비밀스런 분위기는 영화 세트 같음. 관광객이 잘 모르는 진짜 숨은 명소.", maps:"https://www.google.com/maps/search/?api=1&query=Ons+Lieve+Heer+op+Solder", lat:52.3742, lng:4.8989},
+  {name:"Begijnhof 베긴호프", en:"Begijnhof Amsterdam", category:"sights", city:"암스테르담", note:"도심 한가운데 갑자기 나타나는 14세기 수녀회 안뜰. 무료에 5분이면 둘러볼 수 있지만 한 번 알면 매번 들르게 되는 휴식처. 영국 청교도 교회까지 한 켠에 있어 역사적 의미도 있음.", maps:"https://www.google.com/maps/search/?api=1&query=Begijnhof+Amsterdam", lat:52.3697, lng:4.8902},
+  {name:"폰델공원 Vondelpark", en:"Vondelpark", category:"sights", city:"암스테르담", note:"12만 평 도심 공원. 아침엔 조깅, 점심엔 피크닉, 여름 저녁엔 무료 야외 공연. 자전거 빌려서 한 바퀴 돌면 진짜 '암스테르담에 산다'는 기분. 박물관 코스 사이 휴식점으로도.", maps:"https://www.google.com/maps/search/?api=1&query=Vondelpark+Amsterdam", lat:52.3579, lng:4.8686},
+  {name:"Jordaan 요르단 지구", en:"Jordaan", category:"sights", city:"암스테르담", note:"관광지가 아니라 동네 그 자체. 좁은 운하길, 갤러리, 작은 카페가 끝없이 이어짐. 안네 프랑크 하우스에서 끝나면 자연스럽게 흘러들어가게 되는 곳. 토요일 아침엔 농민장도.", maps:"https://www.google.com/maps/search/?api=1&query=Jordaan+Amsterdam", lat:52.3742, lng:4.8826},
+  {name:"A'DAM Lookout 전망대", en:"A'DAM Lookout", category:"sights", city:"암스테르담", note:"20층 옥상에서 'Over The Edge' 스윙 — 운하 도시를 발 아래로 내려다보며 흔들리는 짜릿함. 페리(무료) 5분이면 도착. Eye Filmmuseum과 묶어서 Noord 반나절 코스로.", maps:"https://www.google.com/maps/search/?api=1&query=ADAM+Lookout+Amsterdam", lat:52.3845, lng:4.9028},
+  {name:"Eye Filmmuseum", en:"Eye Filmmuseum", category:"sights", city:"암스테르담", note:"건축물 자체가 미니멀 조각 같은 영화박물관. Noord 강 건너 풍경의 시그니처. 영화 컬렉션·전시도 좋지만 카페에서 강과 도심을 보는 것만으로도 충분. 페리는 무료.", maps:"https://www.google.com/maps/search/?api=1&query=Eye+Filmmuseum+Amsterdam", lat:52.3849, lng:4.9094},
+  {name:"NEMO 과학박물관", en:"NEMO Science Museum", category:"sights", city:"암스테르담", note:"아이 동반이라면 무조건. 옥상은 무료에 도심 전망 명소(현지인 점심 자리). 아이들이 무엇이든 만지고 부수며 배울 수 있는 인터랙티브 과학관. 어른 둘이 가도 의외로 재미있음.", maps:"https://www.google.com/maps/search/?api=1&query=NEMO+Science+Museum+Amsterdam", lat:52.3737, lng:4.9123},
+  {name:"Bloemenmarkt 꽃 시장", en:"Bloemenmarkt", category:"sights", city:"암스테르담", note:"운하 위에 떠 있는 꽃시장. 한국 검역을 통과하는 포장 튤립 구근 사기 좋고, 30분이면 다 봅니다. 가격은 살짝 비싸지만 '암스테르담 왔다'는 사진용으로 들를 만한 한 곳.", maps:"https://www.google.com/maps/search/?api=1&query=Bloemenmarkt+Amsterdam", lat:52.3667, lng:4.8910},
+  {name:"Albert Cuyp Market", en:"Albert Cuyp Market", category:"sights", city:"암스테르담", note:"현지인 단골 시장. 갓 만든 따끈한 스트룹와플, 청어 샌드위치, 치즈를 한 번에 맛볼 수 있고 De Pijp 동네 분위기까지 덤. 평일 아침 10시~오후 5시 추천, 일요일 휴무.", maps:"https://www.google.com/maps/search/?api=1&query=Albert+Cuypmarkt+Amsterdam", lat:52.3563, lng:4.8920},
+  {name:"Ten Katemarkt", en:"Ten Katemarkt", category:"sights", city:"암스테르담", note:"Albert Cuyp의 한적한 사촌. 관광객 적고 현지인 비율 높음. 더 다양한 국제 음식과 신선식품이 강점. West 동네 산책 코스로 묶기 좋고 Foodhallen과도 도보 거리.", maps:"https://www.google.com/maps/search/?api=1&query=Ten+Katemarkt+Amsterdam", lat:52.3650, lng:4.8666},
+  {name:"Westerpark", en:"Westerpark Amsterdam", category:"sights", city:"암스테르담", note:"옛 가스공장을 통째로 문화 단지로 변신. 영화관, 펍, 양조장, 베이커리, 금요일 시장까지. 햇살 좋은 날 현지 친구를 사귀고 싶을 때 가는 곳. Jordaan 도보 15분.", maps:"https://www.google.com/maps/search/?api=1&query=Westerpark+Amsterdam", lat:52.3866, lng:4.8770},
+
+  // ─── 암스테르담 — 사회연대경제 ───
+  {name:"Tony's Chocolonely Super Store", en:"Tony's Chocolonely", category:"impact", city:"암스테르담", note:"코코아 노예노동을 끝내겠다는 미션의 본사 매장. 일부러 '못생긴' 초콜릿 모양은 산업의 불평등을 상징. 1kg DIY 초콜릿 직접 만들기 체험 가능. 선물용으로도 끝판왕.", maps:"https://maps.app.goo.gl/dd42Hm1H68HLTi3V6", lat:52.3814, lng:4.8990},
+  {name:"Fairphone", en:"Fairphone", category:"impact", city:"암스테르담", note:"수리 가능한 윤리적 스마트폰의 본사. 직접 분해해보고 조립할 수 있는 데모존이 있음. 갈등광물 추적, 노동 감시, 모듈 교체 — 전자제품에 윤리가 가능함을 보여주는 표본 케이스.", maps:"https://maps.app.goo.gl/XdrJDKFUc63NvzLo9", lat:52.3760, lng:4.9268},
+  {name:"LENA the Fashion Library", en:"LENA Fashion Library", category:"impact", city:"암스테르담", note:"옷을 사지 않고 빌리는 옷장. 월 멤버십으로 디자이너 의상을 매번 새로 갈아입을 수 있음. 패스트 패션의 대안을 제시한 네덜란드 1호 옷 도서관. 잠깐 들러서 컨셉만 봐도 흥미로움.", maps:"https://www.google.com/maps/search/?api=1&query=LENA+Fashion+Library+Amsterdam", lat:52.3719, lng:4.8918},
+  {name:"Yoni Store", en:"Yoni organic", category:"impact", city:"암스테르담", note:"\"화학물질은 X발이 아니라 X발 음부에 안 좋다\"는 도발적 카피로 시작된 유기농 생리용품 브랜드. €26,000 크라우드펀딩 후 글로벌 확장. 매장에서 제품과 캠페인 스토리를 같이 볼 수 있음.", maps:"https://www.google.com/maps/search/?api=1&query=Yoni+store+Amsterdam", lat:52.3725, lng:4.8888},
+  {name:"Willicroft", en:"Willicroft plant-based cheese", category:"impact", city:"암스테르담", note:"Impact Hub에서 자란 식물성 치즈 브랜드. 영국 출신 창업자가 할아버지의 낙농 노하우로 '치즈처럼 진짜 같은' 비건 치즈를 개발. '자연을 CEO로(Make Mother Nature your CEO)' 캠페인이 인상적.", maps:"https://www.google.com/maps/search/?api=1&query=Willicroft+Amsterdam", lat:52.3650, lng:4.8770},
+  {name:"KLABU Clubhouse", en:"KLABU refugee sport", category:"impact", city:"암스테르담", note:"스와힐리어로 '클럽'. 케냐 난민 캠프에 축구 클럽하우스를 짓고, 그 운영비를 의류 판매 수익 50%로 환원. 디자인 자체도 세련돼서 환경·사회 동기 아니어도 옷이 끌림.", maps:"https://www.google.com/maps/search/?api=1&query=KLABU+Amsterdam", lat:52.3650, lng:4.8800},
+  {name:"Roetz Bikes", en:"Roetz Bikes circular", category:"impact", city:"암스테르담", note:"암스테르담은 자전거의 도시. 폐자전거 부품을 모아 새 자전거로 만들고, 출소자 직업훈련까지 결합. 색감과 디자인이 좋아서 굳이 환경 동기 아니어도 끌리는 브랜드.", maps:"https://www.google.com/maps/search/?api=1&query=Roetz+Bikes+Amsterdam", lat:52.3940, lng:4.9120},
+  {name:"Little Plant Pantry", en:"Little Plant Pantry zero waste", category:"impact", city:"암스테르담", note:"포장 없이 통에 담아오는 식물성 식료품점. 견과·곡물·향신료·세제까지 통째로 무게를 달아서 살 수 있음. 작아도 배울 게 많은 곳, 제로웨이스트 라이프 입문자에게 추천.", maps:"https://www.google.com/maps/search/?api=1&query=Little+Plant+Pantry+Amsterdam", lat:52.3795, lng:4.8770},
+  {name:"De Ceuvel", en:"De Ceuvel Amsterdam", category:"impact", city:"암스테르담", note:"독성 토양에 식물이 흙을 정화하는 '땅의 회복' 실험장. 폐선박을 사무실로 재활용한 풍경은 사진가 천국. 비건 카페와 보트하우스 호텔까지 묶어서 반나절 코스로 추천.", maps:"https://www.google.com/maps/search/?api=1&query=De+Ceuvel+Amsterdam", lat:52.3984, lng:4.9097},
+  {name:"NoordOogst + Pof", en:"NoordOogst urban farm", category:"impact", city:"암스테르담", note:"도시 농업 + 그 자리에서 농산물을 쓰는 식당. De Ceuvel과 묶어 Noord 임팩트 코스 완성. 농장 투어 후 점심 먹는 흐름이 자연스러움. 주말 농민장도 운영.", maps:"https://www.google.com/maps/search/?api=1&query=NoordOogst+Amsterdam", lat:52.3920, lng:4.9080},
+  {name:"Impact Hub Amsterdam", en:"Impact Hub Amsterdam", category:"impact", city:"암스테르담", note:"전 세계 100여 도시 임팩트 허브 네트워크의 암스테르담 지부. Willicroft, Yoni 등이 여기서 자라남. 코워킹 멤버 아니어도 카페·이벤트는 일반인 출입 가능.", maps:"https://www.google.com/maps/search/?api=1&query=Impact+Hub+Amsterdam", lat:52.3458, lng:4.8682},
+  {name:"Museum van de Geest", en:"Museum van de Geest mental health", category:"impact", city:"암스테르담", note:"정신건강을 다루는 박물관. 아웃사이더 아트 전시, 정신과 환자가 본 세계, 사회적 낙인의 역사를 풀어냄. 무겁지만 사회적기업 정신과 맞닿는 깊이 있는 코스.", maps:"https://www.google.com/maps/search/?api=1&query=Museum+van+de+Geest+Amsterdam", lat:52.3733, lng:4.8797},
+  {name:"Conscious Hotels", en:"Conscious Hotel Amsterdam", category:"impact", city:"암스테르담", note:"시내 4지점 친환경 호텔 체인. 침대도 재활용 매트리스, 룸 어메니티도 바이오. 출장이나 일반 여행에서도 '잘 자도 죄책감 없는' 합리적 옵션. Green Key 인증.", maps:"https://www.google.com/maps/search/?api=1&query=Conscious+Hotel+Amsterdam", lat:52.3578, lng:4.8728},
+  {name:"Ecomama", en:"Ecomama hostel Amsterdam", category:"impact", city:"암스테르담", note:"호스텔과 호텔 사이. 도미토리 가능, 가격 좋음. 인테리어가 'eco가 칙칙해야 한다'는 편견을 깨는 디자인. 백패커·예산 여행자에게 추천. 공정무역·재활용 자재 사용.", maps:"https://www.google.com/maps/search/?api=1&query=Ecomama+Amsterdam", lat:52.3625, lng:4.9080},
+  {name:"Hotel Asile Flottant", en:"Hotel Asile Flottant houseboat", category:"impact", city:"암스테르담", note:"De Ceuvel 안에서 자고 일어나는 경험. 옛 보트하우스 6채를 호텔로 변신. 부엌 공유, 정원에서 BBQ. 진짜 '암스테르담 Noord 사람'이 되어보는 1박 옵션.", maps:"https://www.google.com/maps/search/?api=1&query=Hotel+Asile+Flottant+Amsterdam", lat:52.3984, lng:4.9097},
+
+  // ─── 암스테르담 — 맛집 ───
+  {name:"Tempo Doeloe", en:"Tempo Doeloe Amsterdam", category:"food", city:"암스테르담", note:"암스테르담 인도네시안 가장 정통파 평. 2인 라이스타펄(€80~)이면 25개 작은 접시가 끝없이. 매운 'pedis' 옵션은 진짜 맵습니다. 2주 전 예약 필수, 자리는 늘 만석.", maps:"https://www.google.com/maps/search/?api=1&query=Tempo+Doeloe+Amsterdam", lat:52.3637, lng:4.8973},
+  {name:"Restaurant Blauw", en:"Restaurant Blauw Amsterdam", category:"food", city:"암스테르담", note:"Vondelpark 끝, 관광객보다 현지인이 많음. 정통과 모던 사이의 균형이 좋고 보트 모양 그릇에 나오는 데코가 사진용으로도 만족. 첫 라이스타펄 추천 1순위.", maps:"https://www.google.com/maps/search/?api=1&query=Restaurant+Blauw+Amsterdam", lat:52.3520, lng:4.8649},
+  {name:"Sampurna", en:"Sampurna Amsterdam restaurant", category:"food", city:"암스테르담", note:"꽃시장 옆 위치 + 35년 전통 + 가성비. 라이스타펄 €27부터 시작. 3종 강도(mild/medium/hot) 선택 가능. 점심 시간 이용해서 가볍게 시도하기 좋음.", maps:"https://www.google.com/maps/search/?api=1&query=Sampurna+Amsterdam", lat:52.3672, lng:4.8911},
+  {name:"Blue Pepper", en:"Blue Pepper Amsterdam Indonesian", category:"food", city:"암스테르담", note:"정통보다 'Indo-Dutch 모던'. 미슐랭 평가받은 셰프의 코스. 가격(€60~)은 위지만, 인도네시안을 데이트 코스로 격상시키고 싶을 때. 캔들라이트 디너 옵션도.", maps:"https://www.google.com/maps/search/?api=1&query=Blue+Pepper+Amsterdam", lat:52.3625, lng:4.8794},
+  {name:"Tujuh Maret", en:"Tujuh Maret Amsterdam", category:"food", city:"암스테르담", note:"Utrechtsestraat의 가족경영 가게. 메뉴판이 진짜 인도네시아 가정식. Udang laut peteh, Tahu Telor 같은 잘 안 보이는 메뉴까지. 라이스타펄 €30대로 합리적.", maps:"https://www.google.com/maps/search/?api=1&query=Tujuh+Maret+Amsterdam", lat:52.3635, lng:4.8970},
+  {name:"Café 't Smalle", en:"Cafe t Smalle Jordaan", category:"food", city:"암스테르담", note:"1786년부터 운영된 진짜 브라운 카페. 운하 위 작은 테라스에서 비터발렌(Bitterballen) + 트라피스트 맥주 = 더치 즉석 행복. 14:00~16:00 한적해 자리 잡기 좋음.", maps:"https://www.google.com/maps/search/?api=1&query=Cafe+t+Smalle+Amsterdam", lat:52.3753, lng:4.8825},
+  {name:"Café Papeneiland", en:"Cafe Papeneiland Amsterdam", category:"food", city:"암스테르담", note:"1642년 개업한 진짜 옛집 카페. 빌 클린턴이 들렀다는 애플파이가 명물(€5). 내부 도자기 인테리어가 Delft 청자 미니 박물관 같은 분위기. Jordaan 산책 마무리에 딱.", maps:"https://www.google.com/maps/search/?api=1&query=Cafe+Papeneiland+Amsterdam", lat:52.3782, lng:4.8853},
+  {name:"Pannenkoekenhuis Upstairs", en:"Pannenkoekenhuis Upstairs Amsterdam", category:"food", city:"암스테르담", note:"초좁은 17세기 계단을 올라가야 나오는 4테이블짜리 다락. 접시만한 더치 팬케이크는 단짠 다 가능. 줄 서야 함, 평일 점심 추천. 저녁 영업 안 하니 시간 주의.", maps:"https://www.google.com/maps/search/?api=1&query=Pannenkoekenhuis+Upstairs+Amsterdam", lat:52.3700, lng:4.8920},
+  {name:"Vleminckx 감자튀김", en:"Vleminckx Amsterdam fries", category:"food", city:"암스테르담", note:"1887년부터 감자튀김 한 메뉴만. 마요네즈와 사테 소스가 명물. 줄이 길어 보여도 5분 안에 받음. 들고 다니면서 운하 산책용으로 가장 자연스러운 더치 길거리 음식.", maps:"https://www.google.com/maps/search/?api=1&query=Vleminckx+Amsterdam", lat:52.3691, lng:4.8901},
+  {name:"Rudi's Stroopwafels", en:"Stroopwafel Amsterdam", category:"food", city:"암스테르담", note:"Albert Cuyp 시장 안 노점. 갓 구운 따끈한 스트룹와플은 슈퍼 포장과 차원이 다름. 칼로리 폭탄이지만 인생에 한 번. 시장 갔으면 무조건 들르세요.", maps:"https://www.google.com/maps/search/?api=1&query=Rudis+stroopwafels+Amsterdam", lat:52.3556, lng:4.8922},
+  {name:"Stubbe's Haring", en:"Hollandse Nieuwe haring", category:"food", city:"암스테르담", note:"운하 옆 청어 노점. Hollandse Nieuwe(매년 6월 신선 청어)는 양파+피클과 한 입에. 비린맛 거의 없음. 네덜란드 들렀다는 인증 같은 음식, €4면 한 마리.", maps:"https://www.google.com/maps/search/?api=1&query=Stubbes+Haring+Amsterdam", lat:52.3776, lng:4.8910},
+  {name:"Brouwerij De Prael", en:"Brouwerij de Prael Amsterdam", category:"food", city:"암스테르담", note:"취업 취약계층(정신질환·노숙 경험자) 직접 고용 사회적 양조장. 맛은 일반 크래프트 맥주 수준 이상. 양조장 투어 + 펍에서 식사 = 임팩트 데이 마무리에 딱.", maps:"https://www.google.com/maps/search/?api=1&query=Brouwerij+de+Prael+Amsterdam", lat:52.3754, lng:4.8985},
+  {name:"Dignita Hoftuin", en:"Dignita Hoftuin Amsterdam brunch", category:"food", city:"암스테르담", note:"Not for Sale과 협업 — 인신매매 피해자 직업훈련 카페. 브런치(€16~)는 인스타용으로도 충분, 비건·글루텐프리 옵션 풍부. 동물원 근처 정원 풍경도 보너스.", maps:"https://www.google.com/maps/search/?api=1&query=Dignita+Hoftuin+Amsterdam", lat:52.3680, lng:4.9095},
+  {name:"A Beautiful Mess", en:"A Beautiful Mess Amsterdam refugee", category:"food", city:"암스테르담", note:"시리아·이라크·아프가니스탄 난민 셰프 협업. 평범한 중동 식당이 아니라 그들의 가정식이 그대로. 양 푸짐 + 진짜 맛 + 사회적 의미까지 삼박자.", maps:"https://www.google.com/maps/search/?api=1&query=A+Beautiful+Mess+Amsterdam", lat:52.3760, lng:4.9050},
+  {name:"Yemayá's Vegan Corner", en:"Yemaya Vegan Corner", category:"food", city:"암스테르담", note:"Zuidoost 첫 비건 식당. 카리브해 + 라틴 + 채식. 메인 €10대로 합리적. 시내에서 한 시간 거리지만 De Kas 가는 길에 묶기 좋고 동네 분위기도 흥미로움.", maps:"https://www.google.com/maps/search/?api=1&query=Yemaya+Vegan+Corner+Amsterdam", lat:52.3140, lng:4.9560},
+  {name:"De Kas", en:"Restaurant De Kas Amsterdam greenhouse", category:"food", city:"암스테르담", note:"옛 시영 온실 재활용. 정원에서 직접 키운 채소가 그날 메뉴가 됨. 점심 코스 €40~. 'Farm to Table' 본질 — 지속가능 다이닝의 글로벌 모델 같은 곳.", maps:"https://www.google.com/maps/search/?api=1&query=Restaurant+De+Kas+Amsterdam", lat:52.3527, lng:4.9229},
+
+  // ─── 하를럼 ───
+  {name:"Frans Hals Museum", en:"Frans Hals Museum Haarlem", category:"sights", city:"하를럼", note:"프란스 할스 〈웃는 기사〉를 비롯한 17세기 황금기 컬렉션. Rijksmuseum에 못지않은 깊이지만 한적함. 하를럼이 황금기 미술의 또 다른 중심지였음을 보여주는 곳.", maps:"https://www.google.com/maps/search/?api=1&query=Frans+Hals+Museum+Haarlem", lat:52.3793, lng:4.6364},
+  {name:"Grote Markt · St. Bavokerk", en:"Grote Kerk Haarlem St Bavokerk", category:"sights", city:"하를럼", note:"헨델·모차르트가 직접 연주한 5,000파이프 오르간. 매주 무료 공연(시간 확인). 광장 자체가 17세기 그림 그대로의 풍경. 카페 테라스에서 한참 보고만 있어도 좋음.", maps:"https://www.google.com/maps/search/?api=1&query=Grote+Markt+Haarlem", lat:52.3812, lng:4.6372},
+  {name:"Teylers Museum", en:"Teylers Museum Haarlem", category:"sights", city:"하를럼", note:"1784년 개관 — 네덜란드 최고(最古) 박물관. 다윈도 들렀던 화석, 옛 과학기구, 미술품이 한곳에. 박물관의 박물관, '마법사의 작업실' 분위기가 일품.", maps:"https://www.google.com/maps/search/?api=1&query=Teylers+Museum+Haarlem", lat:52.3814, lng:4.6402},
+  {name:"Haarlem Hofjes 안뜰", en:"Hofje Haarlem courtyard", category:"sights", city:"하를럼", note:"하를럼이 자랑하는 17세기 자선 안뜰들. 무료, 입구가 작아 모르고 지나치기 쉬움. Visit Haarlem 안내소에서 hofjes 지도 받아 4~5곳 도는 코스가 추천.", maps:"https://www.google.com/maps/search/?api=1&query=Hofjes+Haarlem", lat:52.3800, lng:4.6350},
+  {name:"Molen De Adriaan 풍차", en:"Molen De Adriaan", category:"sights", city:"하를럼", note:"강가에 우뚝 선 검은 풍차. 풍차 내부에서 곡물 빻는 메커니즘 시연을 볼 수 있고 30분이면 충분. 도시에서 '진짜 풍차'를 보고 싶다면 굳이 Zaanse Schans 안 가도 됨.", maps:"https://www.google.com/maps/search/?api=1&query=Molen+De+Adriaan+Haarlem", lat:52.3855, lng:4.6404},
+  {name:"Oceans Haarlem", en:"Oceans Haarlem Dopper", category:"impact", city:"하를럼", note:"Dopper(친환경 물병 브랜드) 본거지 + 비건 식당 Mama Gaia + 코워킹 + 임팩트 라이브러리. 역에서 도보 1분. 하를럼 임팩트 투어의 출발점으로 최적.", maps:"https://www.google.com/maps/search/?api=1&query=Oceans+Haarlem", lat:52.3870, lng:4.6402},
+  {name:"WAAR Haarlem", en:"WAAR fairtrade store", category:"impact", city:"하를럼", note:"\"이야기가 있는 선물\"이라는 컨셉의 페어트레이드 종합매장. 비누, 의류, 가방, 식품, 인테리어까지 한 곳에. 선물 살 게 있으면 여기 한 번에 다 해결.", maps:"https://www.google.com/maps/search/?api=1&query=WAAR+Haarlem", lat:52.3795, lng:4.6370},
+  {name:"Sûr Atelier", en:"Sur Atelier Haarlem", category:"impact", city:"하를럼", note:"이주여성과 협업하는 패션 아틀리에. 옷 한 벌마다 만든 사람의 이름과 스토리가 있음. 보통 패션쇼에서 보이지 않는 손을 가시화한 브랜드.", maps:"https://www.google.com/maps/search/?api=1&query=Sur+Atelier+Haarlem", lat:52.3795, lng:4.6385},
+  {name:"De wereld van Jansje", en:"Wereld van Jansje Haarlem", category:"impact", city:"하를럼", note:"Fair Design 컨셉 — 잡화점 + 런치룸. 점심 먹으며 페어트레이드 제품 둘러보는 일석이조. 가격대 합리적, 분위기 따뜻함. 하를럼 사회적기업 코스의 점심 자리.", maps:"https://www.google.com/maps/search/?api=1&query=De+wereld+van+Jansje+Haarlem", lat:52.3805, lng:4.6373},
+  {name:"Nyhavn Haarlem", en:"Nyhavn concept store Haarlem", category:"impact", city:"하를럼", note:"세컨드핸드 가구 + 페어 패션 + 홈 디자인 컨셉스토어. 단순 빈티지가 아니라 큐레이션이 까다로움. 인테리어 좋아하면 한참 머무르게 되는 곳.", maps:"https://www.google.com/maps/search/?api=1&query=Nyhavn+Haarlem", lat:52.3815, lng:4.6378},
+  {name:"Appel & Ei", en:"Appel en Ei Haarlem", category:"impact", city:"하를럼", note:"역 바로 앞의 의류 재활용 매장. 가격 저렴(€5~20대). 학생·예산 여행자 추천. 안 입는 옷 가져가면 교환도 가능. 하를럼 들어오자마자 첫 들를 만한 곳.", maps:"https://www.google.com/maps/search/?api=1&query=Appel+en+Ei+Haarlem", lat:52.3870, lng:4.6390},
+  {name:"Mama Gaia", en:"Mama Gaia vegan Haarlem", category:"food", city:"하를럼", note:"Oceans 안 비건 식당. 100% 식물성, 100% 무첨가. 점심 €15~ 디너 €25~. 역 1분 거리라 기차 시간 맞춰 들르기 좋음. 비건이 아니어도 맛있음.", maps:"https://www.google.com/maps/search/?api=1&query=Mama+Gaia+Haarlem", lat:52.3870, lng:4.6402},
+  {name:"Broekhof", en:"Broekhof butchers daughter Haarlem", category:"food", city:"하를럼", note:"4대째 정육점이 변신한 비건 친화 델리. 일부 메뉴는 여전히 고기 — 'flexitarian' 컨셉. 이름 그대로 'The Butcher's Daughter'의 사연이 흥미로운 곳.", maps:"https://www.google.com/maps/search/?api=1&query=Broekhof+Haarlem", lat:52.3815, lng:4.6395},
+  {name:"Mica Coffee Bar", en:"Mica Coffee Bar Haarlem", category:"food", city:"하를럼", note:"자매가 운영하는 미니멀 스페셜티 카페. 스칸디 디자인 + 스페셜티 커피 + 비건/베지 옵션. 노트북 작업용으로도 환영, 조용한 동네 분위기.", maps:"https://www.google.com/maps/search/?api=1&query=Mica+Coffee+Bar+Haarlem", lat:52.3782, lng:4.6371},
+  {name:"Grow Cafe", en:"Grow Cafe Haarlemmer Kweektuin", category:"food", city:"하를럼", note:"도시 텃밭(Haarlemmer Kweektuin) 안 카페. 아이 동반이면 진짜 좋음 — 안에 놀이 코너, 밖엔 자연 놀이터. 야채 메뉴 강함, 주말 농민장도 가끔 열림.", maps:"https://www.google.com/maps/search/?api=1&query=Grow+Cafe+Haarlem", lat:52.3925, lng:4.6300},
+
+  // ─── 위트레흐트 ───
+  {name:"Dom Tower 돔 탑", en:"Dom Tower Utrecht", category:"sights", city:"위트레흐트", note:"112m, 네덜란드에서 가장 높은 교회 탑. 465계단을 돌아 올라가면 맑은 날엔 암스테르담·로테르담·헤이그까지 다 보임. 14.5 EUR. 가이드 투어만 가능 — 출발 시간 확인.", maps:"https://www.google.com/maps/search/?api=1&query=Dom+Tower+Utrecht", lat:52.0907, lng:5.1214},
+  {name:"DOMunder", en:"DOMunder Utrecht", category:"sights", city:"위트레흐트", note:"돔 광장 지하 2,000년의 역사를 손전등 들고 탐험. 로마 시대 → 중세 → 현재까지. 진행자 없이 자기 페이스로. 대성당 무너진 1674년 폭풍 이야기까지 같이.", maps:"https://www.google.com/maps/search/?api=1&query=DOMunder+Utrecht", lat:52.0908, lng:5.1213},
+  {name:"Miffy Museum", en:"Nijntje Museum Miffy", category:"sights", city:"위트레흐트", note:"미피(Nijntje)의 고향. 어린이 인터랙티브 박물관. 6세 이하 자녀 동반이면 무조건. 어른만 가도 디자이너 Dick Bruna의 단순함을 다시 보게 되는 곳.", maps:"https://www.google.com/maps/search/?api=1&query=Nijntje+Museum+Utrecht", lat:52.0853, lng:5.1219},
+  {name:"Centraal Museum", en:"Centraal Museum Utrecht", category:"sights", city:"위트레흐트", note:"Dick Bruna 작업실 통째로 옮김 + Rietveld 의자 컬렉션 + 미술품. 미피 박물관과 묶어 콤보 티켓이 이득. 1.5~2시간 코스로 좋음.", maps:"https://www.google.com/maps/search/?api=1&query=Centraal+Museum+Utrecht", lat:52.0851, lng:5.1219},
+  {name:"Rietveld Schröder House", en:"Rietveld Schroder House", category:"sights", city:"위트레흐트", note:"UNESCO. De Stijl 운동의 살아있는 표본. 1924년 미니멀 디자인이 100년 후 IKEA를 닮았음을 보면 충격. 가이드 투어만 가능, 사전예약 필수.", maps:"https://www.google.com/maps/search/?api=1&query=Rietveld+Schroder+House+Utrecht", lat:52.0851, lng:5.1471},
+  {name:"Spoorwegmuseum 철도박물관", en:"Spoorwegmuseum Utrecht", category:"sights", city:"위트레흐트", note:"옛 역사 그대로의 철도박물관. 가족이라면 위트레흐트 1순위. 인터랙티브 + 빈티지 기차 탑승 + 'Orient Express' 쇼. 반나절은 잡으세요.", maps:"https://www.google.com/maps/search/?api=1&query=Spoorwegmuseum+Utrecht", lat:52.0890, lng:5.1438},
+  {name:"Museum Speelklok", en:"Museum Speelklok Utrecht", category:"sights", city:"위트레흐트", note:"옛 교회 안에 자동연주악기 모음. 정시마다 데모 시연. 17 EUR. 10분이면 지루할 줄 알았다가 1시간 머무르게 되는 의외의 명소.", maps:"https://www.google.com/maps/search/?api=1&query=Museum+Speelklok+Utrecht", lat:52.0907, lng:5.1208},
+  {name:"Oudegracht 옛 운하", en:"Oudegracht Utrecht canal", category:"sights", city:"위트레흐트", note:"위트레흐트의 시그니처. 운하가 2층 — 위는 길, 아래 수면 가까이는 카페·테라스. 위에서 보고, 아래로 내려가서 배 위에서 또 보고. 도시의 핵심 동선.", maps:"https://www.google.com/maps/search/?api=1&query=Oudegracht+Utrecht", lat:52.0907, lng:5.1214},
+  {name:"위트레흐트 공공도서관", en:"Utrecht Public Library Neude", category:"sights", city:"위트레흐트", note:"옛 우체국을 통째로 도서관으로 변신. 아르데코 천장 + 책장 + 카페. 무료 입장. 비 오는 날 1~2시간 보내기 최고. 사진 명소이기도.", maps:"https://www.google.com/maps/search/?api=1&query=Utrecht+Public+Library+Neude", lat:52.0917, lng:5.1207},
+  {name:"De Haar Castle 외곽", en:"De Haar Castle", category:"sights", city:"위트레흐트", note:"네덜란드 최대 성. 시내에서 차로 20분. Schiphol공항 사람들이 '디즈니 성'이라 부르는 그 외관. 정원만 봐도 충분히 가치 있음.", maps:"https://www.google.com/maps/search/?api=1&query=De+Haar+Castle+Utrecht", lat:52.1240, lng:4.9836},
+  {name:"Social Impact Factory · Vredenburg", en:"Social Impact Factory Utrecht", category:"impact", city:"위트레흐트", note:"위트레흐트 사회적기업 생태계의 심장. 카페·이벤트 공간은 일반인 입장 가능. 멤버 아니어도 30분 들르면 'Impact City'의 분위기를 직접 체감할 수 있음.", maps:"https://www.google.com/maps/search/?api=1&query=Social+Impact+Factory+Vredenburg+Utrecht", lat:52.0914, lng:5.1190},
+  {name:"Social Impact Factory · Aan de Gracht", en:"Social Impact Factory Kromme Nieuwegracht", category:"impact", city:"위트레흐트", note:"운하변 역사적 건물의 두 번째 지점. Vredenburg 지점이 모던하다면 여긴 클래식. 코워커들과 자연스럽게 이야기 시작 가능한 친밀한 분위기.", maps:"https://www.google.com/maps/search/?api=1&query=Social+Impact+Factory+Kromme+Nieuwegracht", lat:52.0915, lng:5.1238},
+  {name:"Specialisterren", en:"Specialisterren autism IT", category:"impact", city:"위트레흐트", note:"자폐 스펙트럼 인재의 강점(집중력·패턴 감지)을 IT 직무에 매칭. 소프트웨어 테스팅 회사. 사전 연락하면 투어 가능. '장애의 재해석' 모델 케이스로 유명.", maps:"https://www.google.com/maps/search/?api=1&query=Specialisterren+Utrecht", lat:52.0850, lng:5.0900},
+  {name:"BuurtWerkKamer", en:"BuurtWerkKamer community", category:"impact", city:"위트레흐트", note:"동네 단위 일자리 + 웰빙. 실직·은퇴자가 동네 일거리를 매칭하고, 그 자체가 커뮤니티 센터. 한국 마을공동체 모델 비교점으로 흥미로움.", maps:"https://www.google.com/maps/search/?api=1&query=BuurtWerkKamer+Utrecht", lat:52.0900, lng:5.1100},
+  {name:"De Clique", en:"De Clique food waste circular", category:"impact", city:"위트레흐트", note:"음식점 잔반을 모아 비료·사료로 변환. 자전거로 수거하는 미시 순환경제 모델. 위트레흐트 100여 식당 참여. 시각자료가 강해 견학 가치가 큰 곳.", maps:"https://www.google.com/maps/search/?api=1&query=De+Clique+Utrecht", lat:52.0850, lng:5.0900},
+  {name:"Werkspoorkwartier", en:"Werkspoorkwartier Utrecht industrial", category:"impact", city:"위트레흐트", note:"옛 산업단지를 창의·임팩트 클러스터로. 거대한 격납고 안에 부티크, 식당, 작업실, 양조장. 사진가·디자이너 천국 같은 분위기.", maps:"https://www.google.com/maps/search/?api=1&query=Werkspoorkwartier+Utrecht", lat:52.1000, lng:5.0830},
+  {name:"Broei", en:"Broei Utrecht restaurant", category:"food", city:"위트레흐트", note:"도시 텃밭과 함께 운영되는 친환경 카페·레스토랑. 점심 €15~ 디너 €30~. 식재료 트레이서빌리티가 메뉴판에 적혀 있어 '어디서 온 야채인지'까지 알 수 있음.", maps:"https://www.google.com/maps/search/?api=1&query=Broei+Utrecht", lat:52.0930, lng:5.1100},
+  {name:"The Streetfood Club", en:"Streetfood Club Utrecht", category:"food", city:"위트레흐트", note:"위트레흐트 글로벌 길거리 음식. 멕시칸·아시안·중동 다 있음. 인스타 감성 인테리어, €15 안쪽 메인. 친구 모임이나 가벼운 저녁 추천.", maps:"https://www.google.com/maps/search/?api=1&query=The+Streetfood+Club+Utrecht", lat:52.0915, lng:5.1219},
+  {name:"De Zakkendrager", en:"De Zakkendrager Utrecht", category:"food", city:"위트레흐트", note:"운하변 캐주얼 다이닝. 더치 가정식 + 모던 트위스트. 테라스에서 보트 지나가는 풍경을 보며 식사. 점심 €18, 디너 €30대로 합리적.", maps:"https://www.google.com/maps/search/?api=1&query=De+Zakkendrager+Utrecht", lat:52.0905, lng:5.1208},
+  {name:"Olivier Utrecht", en:"Olivier Belgian beer Utrecht church", category:"food", city:"위트레흐트", note:"옛 교회 천장 그대로의 벨기에 비어 카페. 200종 맥주, 해 질 녘 광선이 스테인드글라스로 들어오면 진짜 분위기 폭발. 음식보다 분위기 보러 가는 곳.", maps:"https://www.google.com/maps/search/?api=1&query=Olivier+Utrecht", lat:52.0884, lng:5.1218},
+
+  // ─── 헤이그 ───
+  {name:"Mauritshuis 마우리츠하위스", en:"Mauritshuis", category:"sights", city:"헤이그", note:"베르메르 〈진주 귀고리 소녀〉가 여기. 콤팩트하면서 강한 펀치 — 황금기 명작 841점 집중 컬렉션. 1.5시간이면 충분하고 헤이그 방문의 첫 번째 이유로도 손색없음.", maps:"https://www.google.com/maps/search/?api=1&query=Mauritshuis+The+Hague", lat:52.0805, lng:4.3146},
+  {name:"Binnenhof & Ridderzaal", en:"Binnenhof", category:"sights", city:"헤이그", note:"13세기부터 운영 중인 정부 단지. 네덜란드 의회의 심장. 광장은 무료 진입 가능. 가이드 투어로 Ridderzaal(왕좌의 방) 입장 가능, 사전예약 필요.", maps:"https://www.google.com/maps/search/?api=1&query=Binnenhof+The+Hague", lat:52.0801, lng:4.3133},
+  {name:"Peace Palace 평화궁", en:"Peace Palace", category:"sights", city:"헤이그", note:"국제사법재판소 본부. '국제법'이라는 개념이 생긴 곳. 외관과 정원만 둘러봐도 충분. 방문자센터(무료) 영상 + 가이드 투어(예약 필수)로 깊이 있게 볼 수도 있음.", maps:"https://www.google.com/maps/search/?api=1&query=Peace+Palace+The+Hague", lat:52.0866, lng:4.2957},
+  {name:"Madurodam", en:"Madurodam", category:"sights", city:"헤이그", note:"1:25 미니어처 네덜란드. 풍차·운하·치즈시장이 다 있는 미니어처 테마파크. 시간 없을 때 '대신 보고가는' 코스로도. 아이 강추, 어른도 의외로 재밌음.", maps:"https://www.google.com/maps/search/?api=1&query=Madurodam+The+Hague", lat:52.1007, lng:4.2957},
+  {name:"Escher in Het Paleis", en:"Escher in Het Paleis", category:"sights", city:"헤이그", note:"옛 왕실 거주지에서 보는 M.C. Escher의 착시 미술. 아래층 마지막 인터랙티브 방에서 사진 찍으면 인스타 폭발. 1시간 코스로 가볍게.", maps:"https://www.google.com/maps/search/?api=1&query=Escher+in+Het+Paleis+The+Hague", lat:52.0827, lng:4.3075},
+  {name:"Panorama Mesdag", en:"Panorama Mesdag", category:"sights", city:"헤이그", note:"1881년 풍경을 360도 거대 캔버스에 담은, 세계 최고(最古) 보존 파노라마. 중앙 플랫폼에 서면 뇌가 잠깐 헷갈림. 30분이면 충분한 독특한 경험.", maps:"https://www.google.com/maps/search/?api=1&query=Panorama+Mesdag+The+Hague", lat:52.0852, lng:4.3036},
+  {name:"Kunstmuseum Den Haag", en:"Kunstmuseum Den Haag", category:"sights", city:"헤이그", note:"몬드리안 세계 최대 컬렉션 보유. 〈Victory Boogie Woogie〉 미완성 마지막 작 포함. 디자이너 Berlage의 건축 자체도 명품으로 평가받음.", maps:"https://www.google.com/maps/search/?api=1&query=Kunstmuseum+Den+Haag", lat:52.0915, lng:4.2825},
+  {name:"Scheveningen 해변", en:"Scheveningen", category:"sights", city:"헤이그", note:"트램 20분이면 북해 해변. 부두 위 관람차, SEA LIFE 수족관, 해산물 식당가. 봄·가을엔 모래사장 산책, 여름엔 수영. 도시와 해변의 결합.", maps:"https://www.google.com/maps/search/?api=1&query=Scheveningen+Beach", lat:52.1086, lng:4.2734},
+  {name:"Japanese Garden Clingendael", en:"Japanese Garden Clingendael", category:"sights", city:"헤이그", note:"Clingendael 공원 안 일본정원. 무료지만 봄·가을 6주씩만 개방(보존 위해). 시기 맞으면 무조건. 인스타 가을 단풍 명소로 이름 높음.", maps:"https://www.google.com/maps/search/?api=1&query=Japanese+Garden+Clingendael", lat:52.0993, lng:4.3329},
+  {name:"Binckhaven (ImpactCity 중심)", en:"Binckhorst The Hague", category:"impact", city:"헤이그", note:"ImpactCity의 심장 — 200여 임팩트 기업이 모인 옛 산업지구. 하나의 빌딩이 아니라 동네. 카페·갤러리·코워킹이 점점이. 산책 코스로 추천.", maps:"https://www.google.com/maps/search/?api=1&query=Binckhaven+The+Hague", lat:52.0625, lng:4.3175},
+  {name:"Unknown Campus / Titaan", en:"Titaan The Hague impact", category:"impact", city:"헤이그", note:"Unknown Campus의 13,000m² 건물. 유럽 최대 임팩트 캠퍼스. 1층 카페·이벤트는 일반 출입 가능. 대규모 컨퍼런스 자주 열림.", maps:"https://www.google.com/maps/search/?api=1&query=Titaan+The+Hague", lat:52.0624, lng:4.3175},
+  {name:"The Hague Humanity Hub", en:"Humanity Hub The Hague", category:"impact", city:"헤이그", note:"NGO·평화·정의 분야 전문 코워킹. 헤이그가 '국제 평화 수도'인 이유의 민간 버전. 매주 수요일 SDG Café 일반 공개로 외부인도 참여 가능.", maps:"https://www.google.com/maps/search/?api=1&query=The+Hague+Humanity+Hub", lat:52.0838, lng:4.3127},
+  {name:"The Hague Tech", en:"Hague Tech blockchain", category:"impact", city:"헤이그", note:"블록체인·AI 임팩트 스타트업 거점. 'tech for good' 컨셉. 데모데이·해커톤 자주 열리니 사이트 미리 체크. 테크 관심 있으면 Binckhaven 다음 코스.", maps:"https://www.google.com/maps/search/?api=1&query=The+Hague+Tech", lat:52.0760, lng:4.2950},
+  {name:"Seepje", en:"Seepje soapberry detergent", category:"impact", city:"헤이그", note:"사포나리아 베리(soapberry)를 네팔에서 수입해 친환경 세제로. 포장도 종이. 헤이그 본사 바로 매장에서 살 수 있어 선물용으로도 좋음.", maps:"https://www.google.com/maps/search/?api=1&query=Seepje+The+Hague", lat:52.0780, lng:4.3000},
+  {name:"Hofkar 청어 노점", en:"Hofkar haring stand", category:"food", city:"헤이그", note:"Binnenhof 정문 옆 청어 노점. 의회 옆에서 €4 청어 한 마리. 정치인들이 점심 사 들고 가는 모습 자주. 매우 헤이그스러운 자연풍경.", maps:"https://www.google.com/maps/search/?api=1&query=Hofkar+The+Hague", lat:52.0805, lng:4.3140},
+  {name:"Bistro Berlage", en:"Bistro Berlage", category:"food", city:"헤이그", note:"헤이그 미술관 옆 카페. 쇼핑가 한가운데 휴식점. 점심 €15대로 합리적. 미술관 다녀와서 차 한잔 자연스럽게 흐를 수 있는 위치.", maps:"https://www.google.com/maps/search/?api=1&query=Bistro+Berlage+The+Hague", lat:52.0824, lng:4.3068},
+  {name:"De Pier Restaurants", en:"De Pier Scheveningen restaurants", category:"food", city:"헤이그", note:"Scheveningen 부두 끝의 식당가. 해산물 + 해변 뷰 + 가끔 관람차에서 식사. 일몰 시간 추천. 식사보다 분위기 보러 가는 곳.", maps:"https://www.google.com/maps/search/?api=1&query=De+Pier+Scheveningen", lat:52.1078, lng:4.2738},
+
+  // ─── 로테르담 ───
+  {name:"Markthal", en:"Markthal Rotterdam", category:"sights", city:"로테르담", note:"11,000m² 천장 그림이 '로테르담의 시스티나 성당'. 아래엔 200+ 푸드홀, 위엔 아파트가 있는 구조. 건축 + 시장 + 미술의 융합. 1시간이면 다 봄.", maps:"https://www.google.com/maps/search/?api=1&query=Markthal+Rotterdam", lat:51.9202, lng:4.4870},
+  {name:"Cube Houses 큐브 하우스", en:"Cube Houses Kubuswoningen", category:"sights", city:"로테르담", note:"45도 기울어진 큐브 38채. 'Show-Cube'에서 안에 들어가서 사람이 어떻게 사는지 직접 볼 수 있음. 사진 명소, 외관만 봐도 충분히 인상적.", maps:"https://www.google.com/maps/search/?api=1&query=Cube+Houses+Rotterdam", lat:51.9201, lng:4.4905},
+  {name:"Erasmusbrug 다리", en:"Erasmusbrug", category:"sights", city:"로테르담", note:"도시의 시그니처 사장교. 별명 '백조(de Zwaan)'. 일몰에 다리 위 자전거 라이딩 추천. 워터택시(€4)로 다리 아래 통과하는 것도 별미.", maps:"https://www.google.com/maps/search/?api=1&query=Erasmusbrug+Rotterdam", lat:51.9105, lng:4.4860},
+  {name:"Euromast 전망탑", en:"Euromast Rotterdam", category:"sights", city:"로테르담", note:"195m 전망탑. 옥상 식당 + 회전 라운지 + 번지점프(여름). 13.5 EUR. 맑은 날만 가세요 — 흐리면 비싼 €13이 됩니다.", maps:"https://www.google.com/maps/search/?api=1&query=Euromast+Rotterdam", lat:51.9050, lng:4.4664},
+  {name:"Depot Boijmans", en:"Depot Boijmans Van Beuningen", category:"sights", city:"로테르담", note:"세계 최초 일반 공개 미술 수장고. 평소엔 안 보이는 미술품 수십만 점이 다 보이게 진열. 거울 외관도 명물. 미술관 + 창고 + 옥상 정원의 조합.", maps:"https://www.google.com/maps/search/?api=1&query=Depot+Boijmans+Rotterdam", lat:51.9148, lng:4.4720},
+  {name:"Kunsthal Rotterdam", en:"Kunsthal Rotterdam", category:"sights", city:"로테르담", note:"Rem Koolhaas 1992년 데뷔작. 영구 컬렉션 없이 5~6개 전시 동시 진행. 1시간 30분 코스. 건축물 자체도 작품으로 평가받는 곳.", maps:"https://www.google.com/maps/search/?api=1&query=Kunsthal+Rotterdam", lat:51.9112, lng:4.4717},
+  {name:"Delfshaven 옛 항구", en:"Delfshaven Rotterdam", category:"sights", city:"로테르담", note:"1620년 메이플라워가 청교도를 태우고 떠난 항구. 폭격을 면한 옛 거리. 운하·풍차·박물관 카페가 한 동네에. 도심 속 작은 시간여행.", maps:"https://www.google.com/maps/search/?api=1&query=Delfshaven+Rotterdam", lat:51.9080, lng:4.4604},
+  {name:"Kinderdijk 풍차마을", en:"Kinderdijk", category:"sights", city:"로테르담", note:"UNESCO 19개 풍차. 워터버스 30분. 진짜 풍차다움(작동 풍차) 면에선 Zaanse Schans보다 위. 자전거 빌려 1시간 코스가 추천.", maps:"https://www.google.com/maps/search/?api=1&query=Kinderdijk", lat:51.8830, lng:4.6306},
+  {name:"Witte Huis", en:"Witte Huis Rotterdam", category:"sights", city:"로테르담", note:"1898년 유럽 최초 마천루(11층). 옥상 360도 전망(바 운영). 폭격을 살아남은 건물 — 옛 로테르담의 흔적을 볼 수 있는 보기 드문 곳.", maps:"https://www.google.com/maps/search/?api=1&query=Witte+Huis+Rotterdam", lat:51.9201, lng:4.4912},
+  {name:"Fenix Food Factory", en:"Fenix Food Factory Rotterdam", category:"impact", city:"로테르담", note:"Katendrecht의 옛 항만 창고가 푸드홀로. 모든 매장이 소상공인. 1층 시장 + 2층 식당 + 3층 옥상 바 구조. 일요일 브런치 추천.", maps:"https://www.google.com/maps/search/?api=1&query=Fenix+Food+Factory+Rotterdam", lat:51.9038, lng:4.4925},
+  {name:"BlueCity", en:"BlueCity Rotterdam Tropicana", category:"impact", city:"로테르담", note:"옛 트로피카나 수영장이 순환경제 캠퍼스로. 한 기업의 폐기물이 다른 기업의 원료가 되는 'No Waste' 모델. 가이드 투어 사전예약 권장.", maps:"https://www.google.com/maps/search/?api=1&query=BlueCity+Rotterdam", lat:51.9078, lng:4.4898},
+  {name:"Enviu", en:"Enviu Rotterdam venture builder", category:"impact", city:"로테르담", note:"사회문제별로 스타트업을 직접 만드는 '벤처빌더'. 17개 글로벌 기업 배출 — Future Proof Shipping, Khaloom 등. 2층 카페 일반 출입 가능.", maps:"https://www.google.com/maps/search/?api=1&query=Enviu+Rotterdam", lat:51.9203, lng:4.4870},
+  {name:"Luchtsingel", en:"Luchtsingel Rotterdam", category:"impact", city:"로테르담", note:"8,000명 시민이 €25씩 크라우드펀딩한 보행자 다리. 각 보드에 후원자 이름이 새겨짐. '내 이름이 도시 다리에 있다'는 컨셉이 멋진 시민 인프라.", maps:"https://www.google.com/maps/search/?api=1&query=Luchtsingel+Rotterdam", lat:51.9220, lng:4.4768},
+  {name:"Dutch Weed Burger HQ", en:"Dutch Weed Burger seaweed", category:"impact", city:"로테르담", note:"해조류로 만든 비건 버거 본사. Green Protein Alliance 멤버. 매장에서 시그니처 버거 €12로 시식 가능. 재미있는 마케팅 + 진짜 맛까지.", maps:"https://www.google.com/maps/search/?api=1&query=Dutch+Weed+Burger+Rotterdam", lat:51.9200, lng:4.4900},
+  {name:"Hopper Coffee", en:"Hopper Coffee Rotterdam", category:"food", city:"로테르담", note:"노스 로테르담 자체 로스팅. 베이커리도 강함. 노트북 작업 환영. 도심에서 트램 10분 거리. 커피 한 잔 마시며 동네 분위기 보기 좋음.", maps:"https://www.google.com/maps/search/?api=1&query=Hopper+Coffee+Rotterdam", lat:51.9270, lng:4.4780},
+  {name:"Pancake Boat", en:"Pannenkoekenboot Rotterdam", category:"food", city:"로테르담", note:"마스 강 1시간 유람 + 팬케이크 무한리필 €25. 가족 단위 추천, 데이트로도. 엔진 소음 없는 평화로운 시간.", maps:"https://www.google.com/maps/search/?api=1&query=Pannenkoekenboot+Rotterdam", lat:51.9080, lng:4.4520},
+  {name:"HMB Rotterdam", en:"HMB Rotterdam restaurant", category:"food", city:"로테르담", note:"Erasmusbrug 옆. 물 위 테라스 + 모던 다이닝. 점심 €30, 디너 €60대. 데이트·접대 코스로 강력 추천. 일몰 시간이 가장 좋음.", maps:"https://www.google.com/maps/search/?api=1&query=HMB+Rotterdam", lat:51.9092, lng:4.4910},
+
+  // ─── 델프트 ───
+  {name:"Vermeer Centrum Delft", en:"Vermeer Centrum Delft", category:"sights", city:"델프트", note:"베르메르의 생애·작업실·기법 재현. 진짜 그림은 없지만(그건 헤이그·암스테르담에) '왜 그런 그림이 나왔나'를 이해하게 됨. Mauritshuis 가기 전에.", maps:"https://www.google.com/maps/search/?api=1&query=Vermeer+Centrum+Delft", lat:52.0114, lng:4.3596},
+  {name:"Royal Delft", en:"Royal Delft Porceleyne Fles", category:"sights", city:"델프트", note:"1653년부터 운영 중인 청자 공방. Delft Blue가 어떻게 만들어지는지 직접 볼 수 있음. 시그니처 푸른 도자기 기념품의 진짜 본산.", maps:"https://www.google.com/maps/search/?api=1&query=Royal+Delft", lat:52.0006, lng:4.3578},
+  {name:"Markt 광장 · Nieuwe Kerk", en:"Nieuwe Kerk Delft", category:"sights", city:"델프트", note:"Delft의 심장 광장. 오라녀 왕가의 영묘 + 시청 + 카페 테라스. 이 한 광장에서 반나절 가능. 화요일·목요일은 시장도 열림.", maps:"https://www.google.com/maps/search/?api=1&query=Markt+Delft", lat:52.0114, lng:4.3603},
+  {name:"Museum Prinsenhof", en:"Museum Prinsenhof Delft", category:"sights", city:"델프트", note:"빌렘 침묵공이 1584년 암살당한 그 자리. 벽의 총탄 자국이 그대로 보존. 네덜란드 독립 역사의 결정적 장면을 직접 볼 수 있는 곳.", maps:"https://www.google.com/maps/search/?api=1&query=Museum+Prinsenhof+Delft", lat:52.0125, lng:4.3567},
+  {name:"Oude Kerk 델프트", en:"Oude Kerk Delft", category:"sights", city:"델프트", note:"탑이 살짝 기울어진 13세기 교회. 베르메르의 묘가 여기. 평화로운 분위기에서 거장의 마지막 안식처를 찾아간다는 작은 의미가 있음.", maps:"https://www.google.com/maps/search/?api=1&query=Oude+Kerk+Delft", lat:52.0123, lng:4.3583},
+
+  // ─── 레이덴 ───
+  {name:"Rijksmuseum van Oudheden", en:"Rijksmuseum van Oudheden", category:"sights", city:"레이덴", note:"이집트 미라·그리스 조각·로마 유물의 종합 고대박물관. 암스테르담 사람들도 와서 보는 깊이. 2시간이면 적절한 코스.", maps:"https://www.google.com/maps/search/?api=1&query=Rijksmuseum+van+Oudheden+Leiden", lat:52.1568, lng:4.4894},
+  {name:"Museum De Lakenhal", en:"Museum De Lakenhal Leiden", category:"sights", city:"레이덴", note:"렘브란트 초기작 소장 — 그가 레이덴 출신이라 가능. 황금기 미술 + 직물·도시사. 1시간 코스로 가볍게 들를 수 있음.", maps:"https://www.google.com/maps/search/?api=1&query=Museum+De+Lakenhal+Leiden", lat:52.1610, lng:4.4924},
+  {name:"Hortus Botanicus Leiden", en:"Hortus Botanicus Leiden", category:"sights", city:"레이덴", note:"1590년 개원, 네덜란드 최고 식물원. 처음 튤립이 유럽에 심어진 자리. 작지만 깊이 있음. 식물학사 좋아하면 한 번은 와볼 가치.", maps:"https://www.google.com/maps/search/?api=1&query=Hortus+Botanicus+Leiden", lat:52.1568, lng:4.4838},
+  {name:"Burcht van Leiden", en:"Burcht van Leiden", category:"sights", city:"레이덴", note:"11세기 인공 언덕 위 성채. 무료. 오르면 시내 전경. 5분이면 올라가고, 10분 산책 코스로 가성비 최고. 사진 명소.", maps:"https://www.google.com/maps/search/?api=1&query=Burcht+van+Leiden", lat:52.1597, lng:4.4925},
+  {name:"Naturalis", en:"Naturalis Biodiversity Center", category:"sights", city:"레이덴", note:"공룡 화석·동물 표본의 자연사박물관. 가족 단위라면 레이덴 1순위. 인터랙티브 강함. 반나절은 잡고 가야 만족.", maps:"https://www.google.com/maps/search/?api=1&query=Naturalis+Leiden", lat:52.1648, lng:4.4738},
+
+  // ─── 근교 마을 ───
+  {name:"Zaanse Schans 잔세스칸스", en:"Zaanse Schans", category:"sights", city:"근교마을", note:"기차 17분, 풍차 마을. 무료 입장 + 풍차 안 들어가는 건 유료(€5). 클로그(나막신) 만드는 시연 무료. 반나절 코스로 적절.", maps:"https://www.google.com/maps/search/?api=1&query=Zaanse+Schans", lat:52.4734, lng:4.8194},
+  {name:"Volendam", en:"Volendam", category:"sights", city:"근교마을", note:"전통 어촌. 청어 시식 + 전통 의상 사진(€10). 진짜 어부 마을이라기보다 '어부 마을 테마파크' 느낌이지만 사진은 잘 나옴. 버스 30분.", maps:"https://www.google.com/maps/search/?api=1&query=Volendam", lat:52.4936, lng:5.0716},
+  {name:"Marken", en:"Marken Netherlands", category:"sights", city:"근교마을", note:"Volendam에서 페리 30분의 옛 섬마을. 더 한적, 진짜 시간 멈춘 동네. 두 곳 묶어서 하루 코스로 다녀오는 것이 효율적.", maps:"https://www.google.com/maps/search/?api=1&query=Marken+Netherlands", lat:52.4576, lng:5.1042},
+  {name:"Edam", en:"Edam Netherlands cheese", category:"sights", city:"근교마을", note:"치즈 마을. 7~8월 수요일 오전 전통 치즈시장 — 그 외엔 조용한 운하 동네. 시장 시즌 맞춰가야 진가가 드러남. 아니면 동네만 둘러보기.", maps:"https://www.google.com/maps/search/?api=1&query=Edam+Netherlands", lat:52.5113, lng:5.0539},
+  {name:"Alkmaar 치즈 시장", en:"Alkmaar cheese market", category:"sights", city:"근교마을", note:"4~9월 금요일 오전 치즈 경매. 중세 의상 입은 짐꾼들의 퍼포먼스가 명물. 그 외엔 평범한 옛 도시. 시즌·시간 정확히 맞춰가야.", maps:"https://www.google.com/maps/search/?api=1&query=Alkmaar+cheese+market", lat:52.6324, lng:4.7460},
+  {name:"Keukenhof", en:"Keukenhof", category:"sights", city:"근교마을", note:"3월 말~5월 중순만 8주 개방. 700만 송이 튤립이 한꺼번에. 그 시즌이면 무조건. 다른 시기엔 닫혀있어 갈 수 없음. Schiphol에서 직행 버스 858.", maps:"https://www.google.com/maps/search/?api=1&query=Keukenhof+Lisse", lat:52.2705, lng:4.5460},
+];
+
+const CATEGORIES = [
+  {key:"all", label:"전체"},
+  {key:"sights", label:"관광지", cls:"cat-sights"},
+  {key:"impact", label:"사회연대경제", cls:"cat-impact"},
+  {key:"food", label:"맛집", cls:"cat-food"}
+];
+const CITIES = ["all","암스테르담","하를럼","위트레흐트","헤이그","로테르담","델프트","레이덴","근교마을"];
+const CAT_LABEL = {sights:"관광지", impact:"사회연대경제", food:"맛집"};
+const CAT_CLS   = {sights:"cat-sights", impact:"cat-impact", food:"cat-food"};
+const CAT_COLOR = {sights:"#1E4A82", impact:"#3F6A4D", food:"#C24A2C"};
+const CITY_EN = {
+  '암스테르담':'Amsterdam','하를럼':'Haarlem','위트레흐트':'Utrecht',
+  '헤이그':'The Hague','로테르담':'Rotterdam','델프트':'Delft',
+  '레이덴':'Leiden','근교마을':'Netherlands'
+};
+
+const state = {category:'all', city:'all', search:'', picked:new Set(), focused:null};
+const $ = id => document.getElementById(id);
+const placeId = p => p.name;
+const escAttr = s => String(s).replace(/"/g,'&quot;');
+const escSel = s => CSS.escape ? CSS.escape(s) : String(s).replace(/["\\]/g,'\\$&');
+const imageSearchUrl = p => {
+  const cityEN = CITY_EN[p.city] || 'Netherlands';
+  return `https://www.google.com/search?tbm=isch&q=${encodeURIComponent((p.en || p.name) + ' ' + cityEN)}`;
+};
+
+/* ════════════════════════════════════════════════════
+   📷 위키피디아 이미지 자동 로딩 (Lazy + Cache)
+   - 1차: 정확한 제목 매칭 (REST API summary)
+   - 2차: 검색 + 첫 결과의 thumbnail
+═══════════════════════════════════════════════════════ */
+const imgCache = new Map(); // place id -> {status, url}
+
+async function fetchWikiImage(query) {
+  // 1차: 직접 제목 매칭
+  try {
+    const t = query.replace(/\s+/g, '_');
+    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`);
+    if (r.ok) {
+      const d = await r.json();
+      if (d.thumbnail && d.thumbnail.source) return d.thumbnail.source;
+    }
+  } catch(e) {}
+  
+  // 2차: 검색 + 페이지 이미지
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=500&origin=*`;
+    const r = await fetch(url);
+    if (r.ok) {
+      const d = await r.json();
+      if (d.query && d.query.pages) {
+        const pages = Object.values(d.query.pages);
+        if (pages[0] && pages[0].thumbnail && pages[0].thumbnail.source) {
+          return pages[0].thumbnail.source;
+        }
+      }
+    }
+  } catch(e) {}
+  
+  return null;
+}
+
+async function loadImageForCard(card) {
+  const id = card.dataset.id;
+  if (!id) return;
+  
+  const cached = imgCache.get(id);
+  if (cached && cached.status !== 'pending') {
+    if (cached.status === 'loaded' && cached.url) {
+      applyImageUrl(id, cached.url);
+    }
+    return;
+  }
+  if (cached && cached.status === 'pending') return;
+  
+  imgCache.set(id, {status:'pending'});
+  
+  const place = PLACES.find(p => placeId(p) === id);
+  if (!place) return;
+  
+  // 로딩 표시
+  document.querySelectorAll(`.card[data-id="${escSel(id)}"] .card-img`).forEach(el => el.classList.add('loading'));
+  
+  const query = place.en || place.name;
+  const url = await fetchWikiImage(query);
+  
+  if (url) {
+    // 미리 로드해서 깨진 URL 걸러내기
+    const probe = new Image();
+    probe.onload = () => {
+      imgCache.set(id, {status:'loaded', url});
+      applyImageUrl(id, url);
+    };
+    probe.onerror = () => {
+      imgCache.set(id, {status:'failed'});
+      removeLoading(id);
+    };
+    probe.src = url;
+  } else {
+    imgCache.set(id, {status:'failed'});
+    removeLoading(id);
+  }
+}
+
+function applyImageUrl(id, url) {
+  document.querySelectorAll(`.card[data-id="${escSel(id)}"] .card-img`).forEach(el => {
+    el.style.backgroundImage = `url("${url}")`;
+    el.classList.add('has-image');
+    el.classList.remove('loading');
+  });
+}
+
+function removeLoading(id) {
+  document.querySelectorAll(`.card[data-id="${escSel(id)}"] .card-img`).forEach(el => el.classList.remove('loading'));
+}
+
+const imgObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const card = e.target.closest('.card');
+      if (card) loadImageForCard(card);
+      imgObserver.unobserve(e.target);
+    }
+  });
+}, { rootMargin: '300px' });
+
+/* ════ 네이버 맵 통합 (3 hooks) ════ */
+let naverMap = null, naverMarkers = [], naverInfoWindow = null;
+const isNaverReady = () => typeof window.naver !== 'undefined' && window.naver.maps;
+
+function initNaverMap(){
+  if(!isNaverReady()) return false;
+  naverMap = new naver.maps.Map('map', {
+    center: new naver.maps.LatLng(52.20, 4.80),
+    zoom: 9, mapTypeControl: false, scaleControl: false,
+    logoControl: true, mapDataControl: false, zoomControl: true,
+    zoomControlOptions: {style: naver.maps.ZoomControlStyle.SMALL, position: naver.maps.Position.TOP_RIGHT}
+  });
+  naverInfoWindow = new naver.maps.InfoWindow({
+    anchorSkew: true, borderColor: '#1A1812', borderWidth: 1, backgroundColor: '#FBF8F1'
+  });
+  $('mapPlaceholder').style.display = 'none';
+  return true;
+}
+
+function updateMarkers(places){
+  if(!isNaverReady() || !naverMap) return;
+  naverMarkers.forEach(m => m.setMap(null));
+  naverMarkers = [];
+  places.forEach(p => {
+    if(p.lat == null || p.lng == null) return;
+    const isPicked = state.picked.has(placeId(p));
+    const color = CAT_COLOR[p.category];
+    const markerSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${isPicked?32:26}" height="${isPicked?32:26}" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="${color}" stroke="#FBF8F1" stroke-width="2.5"/>${isPicked ? '<text x="16" y="21" text-anchor="middle" font-size="14" fill="#fff" font-weight="bold">★</text>' : ''}</svg>`;
+    const marker = new naver.maps.Marker({
+      position: new naver.maps.LatLng(p.lat, p.lng), map: naverMap,
+      icon: {content: markerSvg, anchor: new naver.maps.Point(isPicked?16:13, isPicked?16:13)},
+      zIndex: isPicked ? 100 : 50
+    });
+    naver.maps.Event.addListener(marker, 'click', () => {
+      const id = placeId(p);
+      state.focused = id;
+      const cached = imgCache.get(id);
+      const imgHtml = (cached && cached.status==='loaded' && cached.url) 
+        ? `<div style="width:100%;aspect-ratio:16/9;background:url('${cached.url}') center/cover;margin-bottom:10px"></div>` 
+        : '';
+      const content = `<div style="padding:14px 16px;font-family:'IBM Plex Sans KR',sans-serif;max-width:260px">${imgHtml}<div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:${color};font-weight:600;margin-bottom:4px">${CAT_LABEL[p.category]} · ${p.city}</div><div style="font-family:'Gowun Batang',serif;font-size:16px;font-weight:700;line-height:1.25;margin-bottom:6px">${p.name}</div><div style="font-size:12px;color:#5C5448;line-height:1.5;margin-bottom:10px">${p.note || ''}</div><div style="display:flex;gap:10px;flex-wrap:wrap"><a href="${imageSearchUrl(p)}" target="_blank" style="font-size:11px;color:#5C5448;text-decoration:underline">이미지 ↗</a><a href="${p.maps}" target="_blank" style="font-size:11px;color:#1A1812;text-decoration:underline">구글맵 →</a><a href="javascript:void(0)" onclick="togglePick('${placeId(p).replace(/'/g,"\\'")}')" style="font-size:11px;color:${color}">${isPicked?'★ 선택됨':'☆ 픽에 추가'}</a></div></div>`;
+      naverInfoWindow.setContent(content);
+      naverInfoWindow.open(naverMap, marker);
+      scrollToCard(id);
+      render();
+    });
+    naverMarkers.push(marker);
+  });
+  $('map-count').textContent = places.length;
+  if(places.length > 0 && places.length < PLACES.length){
+    const bounds = new naver.maps.LatLngBounds();
+    places.forEach(p => { if(p.lat != null) bounds.extend(new naver.maps.LatLng(p.lat, p.lng)); });
+    if(places.length === 1){
+      naverMap.setCenter(new naver.maps.LatLng(places[0].lat, places[0].lng));
+      naverMap.setZoom(15);
+    } else {
+      naverMap.fitBounds(bounds, {top:40,right:40,bottom:40,left:40});
+    }
+  }
+}
+
+function focusOnPlace(place){
+  if(!isNaverReady() || !naverMap || place.lat == null) {
+    // 지도가 없으면 페이지 상단(지도 영역)으로 스크롤
+    document.querySelector('.map-section').scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+  document.querySelector('.map-section').scrollIntoView({behavior:'smooth', block:'start'});
+  setTimeout(() => {
+    naverMap.setCenter(new naver.maps.LatLng(place.lat, place.lng));
+    naverMap.setZoom(Math.max(naverMap.getZoom(), 15));
+    const idx = naverMarkers.findIndex(m => {
+      const pos = m.getPosition();
+      return Math.abs(pos.lat() - place.lat) < 0.0001 && Math.abs(pos.lng() - place.lng) < 0.0001;
+    });
+    if(idx >= 0) naver.maps.Event.trigger(naverMarkers[idx], 'click');
+  }, 400);
+}
+
+/* ════ UI 로직 ════ */
+function buildPills(){
+  $('catPills').innerHTML = CATEGORIES.map(c=>{
+    const cnt = c.key==='all' ? PLACES.length : PLACES.filter(p=>p.category===c.key).length;
+    const swatch = c.key==='all' ? '' : `<span class="swatch" style="background:${CAT_COLOR[c.key]}"></span>`;
+    return `<button class="pill ${state.category===c.key?'active':''}" data-cat="${c.key}">${swatch}${c.label} <span class="count">${cnt}</span></button>`;
+  }).join('');
+  $('catPills').querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.category=b.dataset.cat; state.focused=null; render(); });
+  });
+  $('cityPills').innerHTML = CITIES.map(c=>{
+    const label = c==='all' ? '전체' : c;
+    const cnt = c==='all' ? PLACES.length : PLACES.filter(p=>p.city===c).length;
+    return `<button class="pill ${state.city===c?'active':''}" data-city="${c}">${label} <span class="count">${cnt}</span></button>`;
+  }).join('');
+  $('cityPills').querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.city=b.dataset.city; state.focused=null; render(); });
+  });
+}
+
+function filtered(){
+  const q = state.search.trim().toLowerCase();
+  return PLACES.filter(p=>{
+    if(state.category!=='all' && p.category!==state.category) return false;
+    if(state.city!=='all' && p.city!==state.city) return false;
+    if(q && !(p.name.toLowerCase().includes(q) || (p.en&&p.en.toLowerCase().includes(q)) || (p.note&&p.note.toLowerCase().includes(q)))) return false;
+    return true;
+  });
+}
+
+function render(){
+  buildPills();
+  const list = filtered();
+  const grid = $('grid');
+  if(list.length===0){
+    grid.innerHTML = `<div class="empty-state"><h3>조건에 맞는 장소가 없어요</h3>다른 카테고리·도시·키워드로 다시 검색해 보세요.</div>`;
+  } else {
+    grid.innerHTML = list.map(p=>{
+      const id = placeId(p);
+      const isPicked = state.picked.has(id);
+      const isFocused = state.focused === id;
+      const cls = CAT_CLS[p.category];
+      return `
+        <article class="card ${isPicked?'picked':''} ${isFocused?'focused':''}" data-id="${escAttr(id)}" data-cat="${p.category}" onclick="cardClicked('${id.replace(/'/g,"\\'")}')">
+          <div class="card-head">
+            <div class="card-tag ${cls}"><span class="dot"></span>${CAT_LABEL[p.category]}</div>
+            <button class="star-btn" onclick="event.stopPropagation();togglePick('${id.replace(/'/g,"\\'")}')" title="${isPicked?'선택 해제':'내 픽에 추가'}" aria-pressed="${isPicked}">${isPicked?'★':'☆'}</button>
+          </div>
+          <div>
+            <div class="card-name">${p.name}</div>
+            ${p.en?`<div class="card-sub">${p.en}</div>`:''}
+          </div>
+          <div class="card-note">${p.note||''}</div>
+          <div class="card-img">
+            <div class="card-img-loading"></div>
+            <div class="card-img-placeholder">${p.name}</div>
+          </div>
+          <div class="card-foot">
+            <span class="card-city">📍 ${p.city}</span>
+            <div class="card-actions">
+              <a class="card-link img-link" href="${imageSearchUrl(p)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="구글 이미지 검색">이미지 ↗</a>
+              <a class="card-link" href="${p.maps}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="구글맵에서 보기">구글맵 →</a>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+  $('result-count').textContent = list.length;
+  $('stat-total').textContent = PLACES.length;
+  $('map-count').textContent = list.length;
+  const parts = [];
+  if(state.category!=='all') parts.push(CAT_LABEL[state.category]);
+  if(state.city!=='all') parts.push(state.city);
+  if(state.search) parts.push(`"${state.search}"`);
+  $('active-filter').textContent = parts.length ? `필터: ${parts.join(' · ')}` : '';
+  renderPicks();
+  if(isNaverReady() && naverMap){ updateMarkers(list); }
+  else { renderPlaceholderPins(list); }
+  
+  // 이미지 lazy loading 트리거
+  document.querySelectorAll('.card .card-img').forEach(imgEl => {
+    const card = imgEl.closest('.card');
+    const id = card.dataset.id;
+    const cached = imgCache.get(id);
+    if (cached && cached.status === 'loaded' && cached.url) {
+      // 이미 로드됨 → 즉시 적용
+      imgEl.style.backgroundImage = `url("${cached.url}")`;
+      imgEl.classList.add('has-image');
+    } else if (!cached || cached.status === 'failed') {
+      imgObserver.observe(imgEl);
+    }
+  });
+}
+
+function renderPlaceholderPins(list){
+  const wrap = $('pinPreview');
+  if(!wrap) return;
+  wrap.innerHTML = list.slice(0, 80).map(p => 
+    `<span class="pin-mini" style="background:${CAT_COLOR[p.category]}" title="${p.name}"></span>`
+  ).join('');
+}
+
+function cardClicked(id){
+  state.focused = id;
+  const p = PLACES.find(pp => placeId(pp) === id);
+  if(p) focusOnPlace(p);
+  render();
+}
+
+function scrollToCard(id){
+  const card = document.querySelector(`.card[data-id="${escSel(id)}"]`);
+  if(card) card.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function togglePick(id){
+  if(state.picked.has(id)) state.picked.delete(id);
+  else state.picked.add(id);
+  render();
+}
+
+function renderPicks(){
+  const wrap = $('picks');
+  $('pickCount').textContent = state.picked.size;
+  if(state.picked.size===0){ wrap.classList.add('empty'); return; }
+  wrap.classList.remove('empty');
+  const items = [...state.picked].map(id=>{
+    const p = PLACES.find(pp=>placeId(pp)===id);
+    if(!p) return '';
+    return `<span class="pick-chip" onclick="cardClicked('${id.replace(/'/g,"\\'")}')"><span class="dot" style="background:${CAT_COLOR[p.category]}"></span>${p.name}<span style="color:var(--ink-3);font-size:11px">· ${p.city}</span><button class="x" onclick="event.stopPropagation();togglePick('${id.replace(/'/g,"\\'")}')" title="제거">×</button></span>`;
+  }).join('');
+  $('pickList').innerHTML = items;
+}
+
+function copyPicks(){
+  const lines = [...state.picked].map(id=>{
+    const p = PLACES.find(pp=>placeId(pp)===id);
+    if(!p) return '';
+    return `- ${p.name} (${p.city} · ${CAT_LABEL[p.category]}) — ${p.maps}`;
+  });
+  const text = `📍 내 네덜란드 여행 픽 (${state.picked.size}곳)\n\n${lines.join('\n')}`;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = event.target;
+    const old = btn.textContent;
+    btn.textContent = '✓ 복사됨';
+    setTimeout(()=>btn.textContent=old, 1500);
+  }).catch(()=>{ alert(text); });
+}
+
+function clearPicks(){
+  if(state.picked.size===0) return;
+  if(confirm(`선택한 ${state.picked.size}곳을 모두 해제하시겠어요?`)){
+    state.picked.clear();
+    render();
+  }
+}
+
+$('search').addEventListener('input', e=>{ state.search = e.target.value; render(); });
+
+function tryInitMap(retries = 20){
+  if(isNaverReady()){ initNaverMap(); render(); }
+  else if(retries > 0){ setTimeout(() => tryInitMap(retries - 1), 200); }
+}
+
+document.addEventListener('DOMContentLoaded', () => { render(); tryInitMap(); });
+render();
+</script>
+
+</body>
+</html>
